@@ -1,47 +1,73 @@
 import 'package:flutter/material.dart';
-import '../models/game.dart'; // Make sure the path is correct
-import '../viewmodels/game_viewmodel.dart'; // Make sure the path is correct
+import '../models/game.dart';
+import '../viewmodels/game_viewmodel.dart';
 
-class GameListPage extends StatelessWidget {
+class GameListPage extends StatefulWidget {
   const GameListPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final String category = ModalRoute.of(context)!.settings.arguments as String;
-    final GameViewModel viewModel = GameViewModel();
-    final List<Game> gamesInCategory = viewModel.getGamesByCategory(category);
+  State<GameListPage> createState() => _GameListPageState();
+}
 
+class _GameListPageState extends State<GameListPage> {
+  late Future<List<Game>> _gamesFuture;
+  final GameViewModel viewModel = GameViewModel();
+  String? _category;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_category == null) {
+      final categoryArg = ModalRoute.of(context)!.settings.arguments as String;
+      _category = categoryArg;
+      _gamesFuture = viewModel.fetchGamesByCategory(categoryArg);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2A2D3E), // Background gelap
+      backgroundColor: const Color(0xFF2A2D3E),
       appBar: AppBar(
-        title: Text(category), // Judul AppBar sesuai kategori
-        backgroundColor: const Color(0xFF393D54), // Warna AppBar
-        foregroundColor: Colors.white, // Warna teks dan ikon AppBar
+        title: Text(_category ?? 'Games'),
+        backgroundColor: const Color(0xFF393D54),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: gamesInCategory.isEmpty
-          ? const Center( // pesan jika tidak ada game di kategori ini
-        child: Text(
-          'Belum ada game di kategori ini.',
-          style: TextStyle(color: Colors.white70, fontSize: 16),
-        ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: gamesInCategory.length,
-        itemBuilder: (context, index) {
-          final game = gamesInCategory[index];
-          return _buildGameListItem(context, game);
+      body: FutureBuilder<List<Game>>(
+        future: _gamesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}", style: const TextStyle(color: Colors.white)));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text(
+                'Belum ada game di kategori ini.',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+            );
+          } else {
+            final games = snapshot.data!;
+            return ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: games.length,
+              itemBuilder: (context, index) {
+                final game = games[index];
+                return _buildGameListItem(context, game);
+              },
+            );
+          }
         },
       ),
     );
   }
 
-  // --- Helper Widget untuk Item List ---
   Widget _buildGameListItem(BuildContext context, Game game) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, '/detail', arguments: game.id);
+        Navigator.pushNamed(context, '/detail', arguments: game);
       },
       child: Card(
         color: const Color(0xFF3C3F58),
@@ -60,7 +86,7 @@ class GameListPage extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
-                  game.thumbnailUrl,
+                  game.thumbnail, 
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
@@ -109,5 +135,4 @@ class GameListPage extends StatelessWidget {
       ),
     );
   }
-
 }
