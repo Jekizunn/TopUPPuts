@@ -1,61 +1,173 @@
-# UTS Mobile Programming - Aplikasi Top Up Game
+# 🎮 Top Upp — Aplikasi Top Up Game (UAS Project)
 
-Aplikasi Flutter sederhana yang dibuat untuk Ujian Tengah Semester (UTS) mata kuliah Mobile Programming. Aplikasi ini berfungsi sebagai platform simulasi untuk melihat daftar game dan halaman top up.
+**Top Upp** adalah aplikasi mobile berbasis **Flutter** untuk simulasi pembelian item/diamond pada game. Proyek ini dikembangkan sebagai **Final Project** mata kuliah *Mobile Programming*.
 
-## 📖 Deskripsi Aplikasi
+Aplikasi ini menggunakan arsitektur **Hybrid API**:
 
-Aplikasi ini adalah sebuah prototipe mobile untuk layanan top up game. Pengguna dapat melihat daftar game yang tersedia, memfilter berdasarkan kategori, melihat detail singkat, dan mensimulasikan proses menuju halaman pengisian data top up.
+* **API Publik (FreeToGame):** Menyediakan katalog game real-time.
+* **API Lokal (PHP & MySQL):** Menangani transaksi dan riwayat pembelian.
 
-**Tema:** Layanan Top Up Game
+---
 
-## Fitur Utama
+## ✨ Fitur Utama
 
-* **Beranda (Home):**
-    * Menampilkan *search bar* (fungsi pencarian belum aktif).
-    * Menampilkan daftar game populer dalam *list* horizontal.
-    * Menampilkan tombol kategori game (Mobile, PC, Consoles, Voucher, dll.).
-    * Menampilkan daftar game unggulan dalam *list* vertikal.
-* **Daftar Game (List):**
-    * Menampilkan daftar game berdasarkan kategori yang dipilih dari beranda.
-    * Setiap item menampilkan *thumbnail*, judul, dan genre game.
-* **Detail Singkat Game (Detail):**
-    * Menampilkan *banner* game, judul, tombol "Top Up", info singkat (genre, platform, publisher, tanggal rilis), dan *minimum system requirements*.
-* **Halaman Top Up (Top Up):**
-    * Menampilkan *banner* game.
-    * Menyediakan form untuk memasukkan ID Game, Jumlah Diamond/Item, dan Email.
-* **Navigasi:** Menggunakan *Named Routes* untuk perpindahan antar halaman.
-* **Data:** Menggunakan data *dummy* yang didefinisikan di dalam kode (*ViewModel*).
+* Jelajah game secara real-time.
+* Pencarian & filter genre.
+* Detail game lengkap (gambar, platform, deskripsi).
+* Simulasi top up (Create).
+* Riwayat transaksi (Read).
+* Validasi input.
+* Feedback visual (loading, snackbar, struk pembelian).
 
-## 🚀 Cara Menjalankan Aplikasi
+---
 
-1.  **Clone repositori ini:**
-    ```bash
-    git clone [https://github.com/Jekizunn/TopUPPuts](https://github.com/Jekizunn/TopUPPuts)
-    cd TopUPPuts
-    ```
-2.  **Pastikan Flutter SDK terpasang.** Jika belum, ikuti panduan instalasi di [flutter.dev](https://flutter.dev).
-3.  **Dapatkan dependensi:**
-    ```bash
-    flutter pub get
-    ```
-4.  **Jalankan aplikasi:**
-    Hubungkan perangkat (emulator atau fisik) lalu jalankan perintah:
-    ```bash
-    flutter run
-    ```
+## 🛠 Teknologi yang Digunakan
 
-## 🖼️ Struktur Halaman (Navigasi)
+| Layer        | Teknologi      |
+| ------------ | -------------- |
+| Frontend     | Flutter (Dart) |
+| Backend      | PHP Native     |
+| Database     | MySQL          |
+| HTTP Client  | `http` package |
+| External API | FreeToGame API |
 
-* **`/` (Initial Route):** `HomePage` - Menampilkan beranda aplikasi.
-* **`/list`:** `GameListPage` - Menampilkan daftar game berdasarkan kategori (menerima argumen `String category`).
-* **`/detail`:** `ShortDetailPage` - Menampilkan detail singkat game (menerima argumen `int gameId`).
-* **`/topup`:** `TopUpPage` - Menampilkan form input top up (menerima argumen `int gameId`).
+---
 
-## 🛠️ Teknologi yang Digunakan
+# 📁 Struktur Folder
 
-* **Framework:** Flutter
-* **Bahasa:** Dart
-* **Manajemen Data:** Data Dummy (List<Map> / Class Model)
-* **Navigasi:** Named Routes (Navigator 2.0)
+```
+TopUpp/
+├── lib/
+│   ├── main.dart
+│   ├── config.dart
+│   ├── pages/
+│   │   ├── home_page.dart
+│   │   ├── detail_page.dart
+│   │   ├── topup_page.dart
+│   │   ├── history_page.dart
+│   │   └── success_page.dart
+│   └── widgets/
+│       └── ...
+│
+├── topup_api/ (Server Lokal)
+│   ├── koneksi.php
+│   ├── submit.php
+│   └── history.php
+│
+├── pubspec.yaml
+└── README.md
+```
+
+---
+
+# ⚙️ Instalasi & Setup
+
+## 1. Setup Server & Database
+
+### Buat database:
+
+```sql
+CREATE DATABASE db_topup;
+
+USE db_topup;
+
+CREATE TABLE transaksi (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    game_id VARCHAR(50) NOT NULL,
+    game_title VARCHAR(100) NOT NULL,
+    jumlah_diamond INT NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    tanggal DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Letakkan file API lokal:
+
+Buat folder:
+
+* `htdocs/topup_api/` (XAMPP), atau
+* `www/topup_api/` (Laragon)
+
+Isi file:
+
+```
+koneksi.php
+submit.php
+history.php
+```
+
+Pastikan `koneksi.php` terhubung dengan database `db_topup`.
+
+---
+
+## 2. Konfigurasi IP Laptop
+
+1. Buka CMD:
+
+   ```
+   ipconfig
+   ```
+2. Ambil **IPv4 Address** (contoh: `192.168.1.10`)
+3. Di Flutter:
+
+```dart
+const String ipLaptop = '192.168.1.10'; 
+```
+
+> Wajib: HP/Emulator harus satu jaringan WiFi dengan laptop.
+
+---
+
+## 3. Menjalankan Flutter
+
+```bash
+flutter pub get
+flutter run
+```
+
+---
+
+# 🔗 Endpoint API
+
+| Method | Endpoint                 | Deskripsi                   | Sumber         |
+| ------ | ------------------------ | --------------------------- | -------------- |
+| GET    | `/api/games`             | Ambil daftar game real-time | FreeToGame API |
+| POST   | `/topup_api/submit.php`  | Simpan transaksi baru       | Server Lokal   |
+| GET    | `/topup_api/history.php` | Riwayat transaksi by email  | Server Lokal   |
+
+---
+
+# 📌 Contoh Request API
+
+### 1. GET Game List (FreeToGame)
+
+```bash
+GET https://www.freetogame.com/api/games
+```
+
+### 2. POST Transaksi
+
+```bash
+POST http://<IP_LAPTOP>/topup_api/submit.php
+
+Body (x-www-form-urlencoded):
+game_id=123
+game_title=Genshin Impact
+jumlah_diamond=500
+email=user@email.com
+```
+
+### 3. GET Riwayat Transaksi
+
+```bash
+GET http://<IP_LAPTOP>/topup_api/history.php?email=user@email.com
+```
+
+---
+
+# 👤 Author
+
+**Nama:** *Moch. Dzaky Sunnii Kautsar*
+**NIM:** *230605110053*
 
 ---
